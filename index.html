@@ -2,234 +2,485 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f1f0f">
-<title>Malachi LE Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#090e09">
+<title>LE Field Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0f1f0f;--bg2:#162616;--bg3:#1e331e;--gold:#c8a84b;--gold2:#e8c96b;--green:#2ecc71;--red:#e74c3c;--blue:#3498db;--text:#f0ead8;--text2:#a8b8a0;--border:#2a3f2a;--radius:14px;}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
-h1,h2,h3{font-family:'Syne',sans-serif;}
-.topbar{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;}
-.topbar-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--gold);}
-.topbar-sub{font-size:11px;color:var(--text2);}
-.nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--bg2);border-top:1px solid var(--border);display:flex;}
-.nav-btn{flex:1;padding:10px 4px 14px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;color:var(--text2);cursor:pointer;transition:color .2s;border:none;background:none;}
-.nav-btn.active{color:var(--gold);}
-.nav-btn svg{width:22px;height:22px;}
-.page{display:none;padding:16px 16px 100px;}
+:root{
+  --ink:#090e09;--ink2:#111a11;--ink3:#1a281a;--ink4:#243224;
+  --gold:#c9a84c;--gold-dim:#8a6e2a;--gold-glow:#c9a84c33;
+  --sage:#6b8f6b;--sage-dim:#3d5c3d;
+  --cream:#f2ead6;--cream2:#e8ddc4;--cream3:#d4c89a;
+  --ember:#d4522a;--sky:#4a90b8;
+  --text:var(--cream);--text2:#a0b090;--text3:#6a7a6a;
+  --border:#2a3a2a;--border2:#1e2e1e;
+  --r:16px;--r-sm:10px;
+}
+html,body{height:100%;background:var(--ink);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden;}
+/* ─── GRAIN OVERLAY ─── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:999;opacity:.6;}
+
+/* ─── LAYOUT ─── */
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;}
+.topbar{flex-shrink:0;padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border2);background:var(--ink);position:relative;}
+.topbar::after{content:'';position:absolute;bottom:0;left:18px;right:18px;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);}
+.tb-left{display:flex;flex-direction:column;}
+.tb-name{font-family:'Fraunces',serif;font-size:18px;font-weight:900;color:var(--gold);letter-spacing:-0.3px;}
+.tb-sub{font-size:11px;color:var(--text3);margin-top:1px;}
+.countdown{background:var(--ink3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;text-align:center;}
+.cd-num{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--gold);line-height:1;}
+.cd-label{font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+.page{display:none;padding:16px 16px 90px;animation:fadeUp .25s ease;}
 .page.active{display:block;}
-.progress-wrap{background:var(--bg2);border-radius:var(--radius);padding:20px;margin-bottom:14px;border:1px solid var(--border);}
-.progress-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}
-.progress-label .amount{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--gold);}
-.progress-label .target{font-size:13px;color:var(--text2);}
-.progress-bar{height:8px;background:var(--bg3);border-radius:99px;overflow:hidden;margin-bottom:8px;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--green));border-radius:99px;transition:width .6s ease;}
-.progress-pct{font-size:12px;color:var(--text2);text-align:right;}
-.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
-.metric-card .label{font-size:11px;color:var(--text2);margin-bottom:6px;}
-.metric-card .value{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;}
-.metric-card.gold .value{color:var(--gold);}
-.metric-card.green .value{color:var(--green);}
-.metric-card.red .value{color:var(--red);}
-.metric-card.blue .value{color:var(--blue);}
-.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
-.recent-list{display:flex;flex-direction:column;gap:8px;}
-.recent-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
-.ri-name{font-size:13px;font-weight:500;}
-.ri-book{font-size:11px;color:var(--text2);margin-top:2px;}
-.ri-amount{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--gold);}
-.tab-row{display:flex;gap:8px;margin-bottom:16px;}
-.tab-btn{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
-.tab-btn.active{background:var(--gold);color:#0f1f0f;font-weight:600;border-color:var(--gold);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* ─── NAV ─── */
+.nav{flex-shrink:0;display:flex;background:var(--ink2);border-top:1px solid var(--border2);padding-bottom:env(safe-area-inset-bottom);}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 12px;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--text3);border:none;background:none;cursor:pointer;transition:color .2s;position:relative;}
+.nb.active{color:var(--gold);}
+.nb.active::before{content:'';position:absolute;top:0;left:20%;right:20%;height:2px;background:var(--gold);border-radius:0 0 2px 2px;}
+.nb svg{width:20px;height:20px;}
+
+/* ─── SECTION HEADER ─── */
+.sec-hdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+.sec-title{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--cream);}
+.sec-action{font-size:12px;color:var(--gold);cursor:pointer;padding:4px 0;}
+
+/* ─── CARDS ─── */
+.card{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);}
+
+/* ─── PROGRESS HERO ─── */
+.hero-card{background:linear-gradient(135deg,var(--ink3) 0%,var(--ink4) 100%);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:12px;position:relative;overflow:hidden;}
+.hero-card::after{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:var(--gold-glow);filter:blur(30px);}
+.hero-label{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.hero-amount{font-family:'Fraunces',serif;font-size:42px;font-weight:900;color:var(--gold);line-height:1;cursor:pointer;}
+.hero-amount:hover{opacity:.8;}
+.hero-target{font-size:13px;color:var(--text2);margin-top:4px;cursor:pointer;}
+.pbar-wrap{margin:14px 0 8px;background:var(--ink);border-radius:99px;height:6px;overflow:hidden;}
+.pbar-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:99px;transition:width .8s cubic-bezier(.4,0,.2,1);}
+.pbar-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
+
+/* ─── METRIC ROW ─── */
+.metric-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.metric{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 12px;}
+.metric .m-label{font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px;}
+.metric .m-val{font-family:'Fraunces',serif;font-size:24px;font-weight:700;color:var(--cream);cursor:pointer;}
+.metric .m-val.gold{color:var(--gold);}
+.metric .m-val.ember{color:var(--ember);}
+.metric .m-val.sage{color:#8fbf8f;}
+.metric .m-val.sky{color:var(--sky);}
+.metric .m-edit-hint{font-size:10px;color:var(--text3);margin-top:3px;}
+
+/* ─── RECENT SALES ─── */
+.sale-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border2);}
+.sale-item:last-child{border-bottom:none;}
+.si-left .si-name{font-size:14px;font-weight:500;color:var(--cream);}
+.si-left .si-book{font-size:11px;color:var(--text3);margin-top:2px;}
+.si-right .si-amt{font-family:'Fraunces',serif;font-size:18px;color:var(--gold);}
+.si-right .si-date{font-size:10px;color:var(--text3);text-align:right;margin-top:2px;}
+
+/* ─── LOG SALE ─── */
+.tab-row{display:flex;background:var(--ink3);border-radius:var(--r-sm);padding:4px;margin-bottom:16px;gap:4px;}
+.tab-btn{flex:1;padding:9px;border-radius:8px;border:none;background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;}
+.tab-btn.active{background:var(--ink);color:var(--gold);font-weight:600;box-shadow:0 1px 8px #00000040;}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
-.ai-textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;resize:none;min-height:120px;outline:none;transition:border .2s;}
-.ai-textarea:focus{border-color:var(--gold);}
-.ai-hint{font-size:12px;color:var(--text2);margin-top:8px;margin-bottom:14px;line-height:1.5;}
-.btn-primary{width:100%;padding:14px;background:var(--gold);color:#0f1f0f;border:none;border-radius:var(--radius);font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s;}
-.btn-primary:active{opacity:.8;}
-.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
-.form-group{margin-bottom:14px;}
-.form-label{font-size:12px;color:var(--text2);margin-bottom:6px;display:block;}
-.form-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border .2s;}
-.form-input:focus{border-color:var(--gold);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.ai-result{background:var(--bg3);border:1px solid var(--gold);border-radius:var(--radius);padding:14px;margin:14px 0;display:none;}
-.ai-result.show{display:block;}
-.ai-result-title{font-size:12px;color:var(--gold);font-weight:600;margin-bottom:8px;}
-.ai-result-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--border);}
-.ai-result-row:last-child{border-bottom:none;}
-.search-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;margin-bottom:14px;}
-.contact-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;}
-.contact-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-.contact-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
-.status-badge{font-size:10px;padding:3px 9px;border-radius:99px;font-weight:600;}
-.status-hot{background:#d85a3022;color:#e8855a;border:1px solid #d85a3044;}
-.status-pending{background:#c8a84b22;color:var(--gold);border:1px solid #c8a84b44;}
-.status-closed{background:#2ecc7122;color:var(--green);border:1px solid #2ecc7144;}
-.status-donate{background:#3498db22;color:var(--blue);border:1px solid #3498db44;}
-.contact-phone{font-size:13px;color:var(--text2);margin-bottom:6px;}
-.contact-interest{font-size:12px;color:var(--text2);margin-bottom:6px;}
-.contact-actions{display:flex;gap:8px;margin-top:10px;}
-.action-btn{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:12px;cursor:pointer;text-align:center;text-decoration:none;display:block;transition:all .2s;}
-.action-btn.cal{border-color:#3498db44;color:var(--blue);}
-.fab{position:fixed;bottom:80px;right:18px;width:52px;height:52px;background:var(--gold);border-radius:50%;border:none;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px #c8a84b44;z-index:90;}
-.fab svg{width:24px;height:24px;color:#0f1f0f;}
-.donation-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.donation-name{font-weight:500;font-size:14px;}
-.donation-note{font-size:12px;color:var(--text2);margin-top:3px;}
-.donation-amount{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--blue);}
-.modal-overlay{position:fixed;inset:0;background:#00000088;z-index:200;display:none;align-items:flex-end;justify-content:center;}
-.modal-overlay.show{display:flex;}
-.modal{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding:20px 18px 40px;border-top:1px solid var(--border);max-height:90vh;overflow-y:auto;}
-.modal-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:18px;display:flex;justify-content:space-between;}
-.modal-close{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;}
-.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:500;z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
-.toast.show{opacity:1;}
-.empty-state{text-align:center;padding:40px 20px;color:var(--text2);font-size:14px;}
-select.form-input{appearance:none;}
+
+.input-field{width:100%;background:var(--ink3);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 14px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:border .2s;-webkit-appearance:none;}
+.input-field::placeholder{color:var(--text3);}
+.input-field:focus{border-color:var(--gold-dim);}
+textarea.input-field{resize:none;min-height:110px;line-height:1.5;}
+select.input-field{cursor:pointer;}
+.fg{margin-bottom:13px;}
+.fl{font-size:11px;color:var(--text3);margin-bottom:6px;letter-spacing:.3px;}
+.form-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.parse-hint{font-size:12px;color:var(--text3);line-height:1.6;margin:8px 0 14px;padding:10px 12px;background:var(--ink3);border-radius:var(--r-sm);border-left:2px solid var(--gold-dim);}
+
+.parsed-box{background:var(--ink3);border:1px solid var(--gold-dim);border-radius:var(--r-sm);padding:14px;margin:12px 0;display:none;}
+.parsed-box.show{display:block;}
+.pb-title{font-size:11px;color:var(--gold);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px;}
+.pb-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2);font-size:13px;}
+.pb-row:last-child{border-bottom:none;}
+.pb-key{color:var(--text3);}
+.pb-val{color:var(--cream);font-weight:500;}
+
+.btn{width:100%;padding:15px;border:none;border-radius:var(--r-sm);font-family:'Fraunces',serif;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.3px;}
+.btn-gold{background:var(--gold);color:var(--ink);}
+.btn-gold:active{opacity:.85;transform:scale(.98);}
+.btn-gold:disabled{opacity:.35;cursor:not-allowed;}
+.btn-ghost{background:var(--ink3);color:var(--text2);border:1px solid var(--border);}
+.btn-row{display:flex;gap:8px;margin-top:12px;}
+.btn-row .btn{font-size:14px;padding:12px;}
+
+/* ─── CONTACTS ─── */
+.search-wrap{position:relative;margin-bottom:14px;}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--text3);}
+.search-input{width:100%;background:var(--ink3);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 14px 11px 36px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;}
+.search-input::placeholder{color:var(--text3);}
+
+.contact-card{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:10px;position:relative;}
+.cc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.cc-name{font-family:'Fraunces',serif;font-size:17px;font-weight:700;color:var(--cream);}
+.cc-phone{font-size:12px;color:var(--text3);margin-bottom:5px;}
+.cc-interest{font-size:12px;color:var(--text2);margin-bottom:4px;}
+.cc-notes{font-size:11px;color:var(--text3);font-style:italic;}
+.cc-actions{display:flex;gap:7px;margin-top:11px;}
+.ca{flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--border);background:var(--ink3);color:var(--text2);font-size:11px;text-align:center;text-decoration:none;cursor:pointer;display:block;transition:all .2s;}
+.ca.wa{border-color:#25d36622;color:#25d366;}
+.ca.cal{border-color:#4a90b822;color:var(--sky);}
+.ca.edit-btn{border-color:var(--gold-dim);color:var(--gold);}
+.badge{font-size:10px;padding:3px 8px;border-radius:99px;font-weight:600;white-space:nowrap;}
+.b-hot{background:#d4522a18;color:#e07050;border:1px solid #d4522a33;}
+.b-pending{background:#c9a84c18;color:var(--gold);border:1px solid #c9a84c33;}
+.b-closed{background:#5a9a5a18;color:#7abf7a;border:1px solid #5a9a5a33;}
+.b-donate{background:#4a90b818;color:var(--sky);border:1px solid #4a90b833;}
+
+/* ─── INVENTORY ─── */
+.inv-header{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;padding:8px 12px;font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border2);margin-bottom:4px;}
+.inv-row{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;padding:12px;background:var(--ink2);border:1px solid var(--border2);border-radius:var(--r-sm);margin-bottom:6px;align-items:center;cursor:pointer;transition:border .2s;}
+.inv-row:hover{border-color:var(--gold-dim);}
+.inv-title{font-size:13px;font-weight:500;color:var(--cream);}
+.inv-price{font-size:12px;color:var(--gold);}
+.inv-cell{font-size:13px;color:var(--text2);text-align:center;}
+.inv-cell.low{color:var(--ember);}
+.inv-cell.ok{color:#7abf7a;}
+.inv-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.inv-stat{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;text-align:center;}
+.inv-stat .is-val{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--cream);}
+.inv-stat .is-lbl{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.5px;}
+
+/* ─── DONATIONS ─── */
+.don-card{background:var(--ink2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.don-name{font-size:14px;font-weight:500;color:var(--cream);}
+.don-note{font-size:11px;color:var(--text3);margin-top:3px;}
+.don-amt{font-family:'Fraunces',serif;font-size:20px;color:var(--sky);}
+.don-status{font-size:11px;color:var(--text3);text-align:right;margin-top:3px;}
+
+/* ─── FAB ─── */
+.fab{position:fixed;bottom:80px;right:18px;width:54px;height:54px;background:var(--gold);border-radius:50%;border:none;display:none;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 24px var(--gold-glow);z-index:89;transition:transform .2s;}
+.fab:active{transform:scale(.92);}
+.fab svg{width:24px;height:24px;color:var(--ink);}
+
+/* ─── MODAL ─── */
+.modal-bg{position:fixed;inset:0;background:#00000099;z-index:200;display:none;align-items:flex-end;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--ink2);border-radius:20px 20px 0 0;width:100%;padding:20px 18px calc(20px + env(safe-area-inset-bottom));border-top:1px solid var(--border);max-height:92vh;overflow-y:auto;}
+.modal-title{font-family:'Fraunces',serif;font-size:19px;font-weight:700;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;}
+.modal-close{background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;line-height:1;}
+
+/* ─── INLINE EDIT ─── */
+.editable{cursor:pointer;border-bottom:1px dashed var(--gold-dim);transition:border .2s;}
+.editable:hover{border-bottom-color:var(--gold);}
+
+/* ─── TOAST ─── */
+.toast{position:fixed;top:72px;left:50%;transform:translateX(-50%) translateY(-10px);background:var(--ink3);color:var(--cream);border:1px solid var(--gold-dim);padding:10px 20px;border-radius:99px;font-size:13px;z-index:400;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ─── SHARE PANEL ─── */
+.share-box{background:var(--ink3);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-top:14px;}
+.share-label{font-size:12px;color:var(--text3);margin-bottom:8px;}
+.share-code{background:var(--ink);border-radius:6px;padding:10px;font-size:11px;color:var(--sage);word-break:break-all;font-family:monospace;margin-bottom:10px;max-height:80px;overflow:hidden;}
+
+.empty{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px;}
 </style>
 </head>
 <body>
+<div class="app">
+
+<!-- TOPBAR -->
 <div class="topbar">
-  <div><div class="topbar-title">Malachi LE Tracker</div><div class="topbar-sub">Antigua 2025 · Target: EC$30,000</div></div>
-  <div style="font-size:11px;color:var(--text2);text-align:right;" id="days-left-top"></div>
+  <div class="tb-left">
+    <div class="tb-name">LE Field Tracker</div>
+    <div class="tb-sub">Malachi Sobers · Antigua 2026</div>
+  </div>
+  <div class="countdown">
+    <div class="cd-num" id="cd-num">—</div>
+    <div class="cd-label">Days Left</div>
+  </div>
 </div>
 
-<div id="page-dashboard" class="page active">
-  <div class="progress-wrap">
-    <div class="progress-label"><span class="amount" id="dash-total">EC$0</span><span class="target">of EC$30,000</span></div>
-    <div class="progress-bar"><div class="progress-fill" id="dash-bar" style="width:0%"></div></div>
-    <div class="progress-pct" id="dash-pct">0% complete</div>
+<!-- CONTENT -->
+<div class="content">
+
+<!-- DASHBOARD -->
+<div id="pg-dash" class="page active">
+  <div class="hero-card">
+    <div class="hero-label">Total Sales</div>
+    <div class="hero-amount editable" id="h-total" onclick="editField('total_sales','Total Sales (EC$)',getTotal())">EC$0</div>
+    <div class="hero-target">Target: <span class="editable" id="h-target" onclick="editField('target','Sales Target (EC$)',S.target)">EC$30,000</span></div>
+    <div class="pbar-wrap"><div class="pbar-fill" id="pbar" style="width:0%"></div></div>
+    <div class="pbar-meta"><span id="pbar-pct">0%</span><span id="pbar-remain">EC$30,000 remaining</span></div>
   </div>
-  <div class="metrics-grid">
-    <div class="metric-card gold"><div class="label">Commission Earned</div><div class="value" id="dash-commission">EC$0</div></div>
-    <div class="metric-card green"><div class="label">Today's Sales</div><div class="value" id="dash-today">EC$0</div></div>
-    <div class="metric-card red"><div class="label">Remaining</div><div class="value" id="dash-remaining">EC$30,000</div></div>
-    <div class="metric-card blue"><div class="label">Days Left</div><div class="value" id="dash-days">—</div></div>
+  <div class="metric-row">
+    <div class="metric">
+      <div class="m-label">Commission</div>
+      <div class="m-val gold editable" id="m-comm" onclick="editField('commission_rate','Commission % (e.g. 50)',S.commRate*100)">EC$0</div>
+      <div class="m-edit-hint">Tap to edit rate</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Today's Sales</div>
+      <div class="m-val sage" id="m-today">EC$0</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Scholarship</div>
+      <div class="m-val sky editable" id="m-schol" onclick="editField('schol_rate','Scholarship Split % (e.g. 60)',S.scholRate*100)">EC$0</div>
+      <div class="m-edit-hint">Tap to edit split</div>
+    </div>
+    <div class="metric">
+      <div class="m-label">Living Expenses</div>
+      <div class="m-val ember" id="m-living">EC$0</div>
+    </div>
   </div>
-  <div class="section-title">Recent Sales</div>
-  <div class="recent-list" id="recent-list"></div>
+  <div class="sec-hdr"><span class="sec-title">Recent Sales</span><span class="sec-action" onclick="showPage('log');setNav('log')">+ Log Sale</span></div>
+  <div class="card" id="recent-sales"></div>
 </div>
 
-<div id="page-log" class="page">
+<!-- LOG SALE -->
+<div id="pg-log" class="page">
+  <div class="sec-hdr"><span class="sec-title">Log a Sale</span></div>
   <div class="tab-row">
     <button class="tab-btn active" onclick="switchTab('ai')">💬 Quick Log</button>
-    <button class="tab-btn" onclick="switchTab('form')">📝 Form</button>
+    <button class="tab-btn" onclick="switchTab('form')">📋 Form</button>
   </div>
   <div id="tab-ai" class="tab-panel active">
-    <textarea class="ai-textarea" id="ai-input" placeholder="Just tell me what happened...&#10;&#10;e.g. &quot;Sold Cooking with Kids and 250 Recipes to Sandra for $260, her number is 268-555-1234&quot;"></textarea>
-    <div class="ai-hint">Type naturally. AI will pull out name, number, books and amount automatically.</div>
-    <div class="ai-result" id="ai-result">
-      <div class="ai-result-title">Here's what I picked up — confirm?</div>
-      <div id="ai-result-body"></div>
-      <div style="display:flex;gap:8px;margin-top:12px;">
-        <button class="btn-primary" style="background:var(--green);" onclick="confirmAiSale()">✓ Save Sale</button>
-        <button class="btn-primary" style="background:var(--bg3);color:var(--text);" onclick="cancelAi()">Edit</button>
+    <textarea class="input-field" id="ai-in" placeholder='Just describe what happened...
+
+e.g. "Sold 250 Recipes and Cooking with Kids to Sandra for $260, her WhatsApp is 268-555-1234"'></textarea>
+    <div class="parse-hint">Type naturally — name, books, amount, phone. I'll read it and confirm before saving.</div>
+    <div class="parsed-box" id="parsed-box">
+      <div class="pb-title">Confirm this sale?</div>
+      <div id="pb-body"></div>
+      <div class="btn-row">
+        <button class="btn btn-gold" onclick="confirmAi()">✓ Save</button>
+        <button class="btn btn-ghost" onclick="cancelAi()">Edit</button>
       </div>
     </div>
-    <button class="btn-primary" id="ai-parse-btn" onclick="parseAiInput()">Parse & Confirm</button>
+    <button class="btn btn-gold" id="ai-btn" onclick="parseAi()">Parse & Confirm</button>
   </div>
   <div id="tab-form" class="tab-panel">
-    <div class="form-group"><label class="form-label">Customer Name</label><input class="form-input" id="f-name" placeholder="e.g. Sandra Roberts" type="text"></div>
-    <div class="form-group"><label class="form-label">Phone / WhatsApp</label><input class="form-input" id="f-phone" placeholder="+1 268 555-1234" type="tel"></div>
-    <div class="form-group"><label class="form-label">Book(s) Sold</label><input class="form-input" id="f-books" placeholder="e.g. Cooking with Kids, 250 Recipes" type="text"></div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Amount (EC$)</label><input class="form-input" id="f-amount" placeholder="0.00" type="number"></div>
-      <div class="form-group"><label class="form-label">Payment</label><select class="form-input" id="f-payment"><option>Cash</option><option>Bank Transfer</option><option>Other</option></select></div>
+    <div class="fg"><label class="fl">Customer Name</label><input class="input-field" id="f-name" type="text" placeholder="e.g. Sandra Roberts"></div>
+    <div class="fg"><label class="fl">Phone / WhatsApp</label><input class="input-field" id="f-phone" type="tel" placeholder="+1 268 555-1234"></div>
+    <div class="fg"><label class="fl">Book(s) Sold</label><input class="input-field" id="f-books" type="text" placeholder="e.g. 250 Recipes, Cooking with Kids"></div>
+    <div class="form-2">
+      <div class="fg"><label class="fl">Amount (EC$)</label><input class="input-field" id="f-amt" type="number" placeholder="0"></div>
+      <div class="fg"><label class="fl">Payment</label><select class="input-field" id="f-pay"><option>Cash</option><option>Bank Transfer</option><option>Other</option></select></div>
     </div>
-    <div class="form-group"><label class="form-label">Notes (optional)</label><input class="form-input" id="f-notes" placeholder="Any extra details..." type="text"></div>
-    <button class="btn-primary" onclick="saveFormSale()">Save Sale</button>
+    <div class="fg"><label class="fl">Date</label><input class="input-field" id="f-date" type="date"></div>
+    <div class="fg"><label class="fl">Notes</label><input class="input-field" id="f-notes" placeholder="Anything extra..." type="text"></div>
+    <button class="btn btn-gold" onclick="saveForm()">Save Sale</button>
   </div>
 </div>
 
-<div id="page-contacts" class="page">
-  <input class="search-input" placeholder="🔍  Search contacts..." oninput="renderContacts(this.value)">
+<!-- CONTACTS -->
+<div id="pg-contacts" class="page">
+  <div class="sec-hdr"><span class="sec-title">Contacts</span><span class="sec-action" id="contacts-count"></span></div>
+  <div class="search-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="search-input" placeholder="Search name, phone or book..." oninput="renderContacts(this.value)" id="c-search">
+  </div>
   <div id="contacts-list"></div>
 </div>
 
-<div id="page-donations" class="page">
-  <div class="metrics-grid" style="margin-bottom:16px;">
-    <div class="metric-card blue"><div class="label">Total Donations</div><div class="value" id="don-total">EC$0</div></div>
-    <div class="metric-card gold"><div class="label">Donors</div><div class="value" id="don-count">0</div></div>
-  </div>
-  <div id="donations-list"></div>
+<!-- INVENTORY -->
+<div id="pg-inv" class="page">
+  <div class="sec-hdr"><span class="sec-title">Inventory</span><span class="sec-action" onclick="openModal('modal-inv-add')">+ Add Book</span></div>
+  <div class="inv-summary" id="inv-summary"></div>
+  <div class="inv-header"><span>Book</span><span style="text-align:center">Price</span><span style="text-align:center">Sold</span><span style="text-align:center">Left</span></div>
+  <div id="inv-list"></div>
 </div>
 
+<!-- DONATIONS -->
+<div id="pg-don" class="page">
+  <div class="sec-hdr"><span class="sec-title">Donations</span></div>
+  <div class="metric-row">
+    <div class="metric"><div class="m-label">Total Received</div><div class="m-val sky" id="don-total">EC$0</div></div>
+    <div class="metric"><div class="m-label">Donors</div><div class="m-val" id="don-count">0</div></div>
+  </div>
+  <div id="don-list"></div>
+</div>
+
+</div><!-- /content -->
+
+<!-- NAV -->
 <nav class="nav">
-  <button class="nav-btn active" onclick="showPage('dashboard',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-    Dashboard
+  <button class="nb active" id="nav-dash" onclick="showPage('dash');setNav('dash')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Home
   </button>
-  <button class="nav-btn" onclick="showPage('log',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-    Log Sale
+  <button class="nb" id="nav-log" onclick="showPage('log');setNav('log')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    Log
   </button>
-  <button class="nav-btn" onclick="showPage('contacts',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  <button class="nb" id="nav-contacts" onclick="showPage('contacts');setNav('contacts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     Contacts
   </button>
-  <button class="nav-btn" onclick="showPage('donations',this)">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+  <button class="nb" id="nav-inv" onclick="showPage('inv');setNav('inv')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+    Inventory
+  </button>
+  <button class="nb" id="nav-don" onclick="showPage('don');setNav('don')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     Donations
   </button>
 </nav>
 
-<button class="fab" id="fab-add" onclick="openAddModal()">
+<!-- FAB -->
+<button class="fab" id="fab" onclick="fabAction()">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 </button>
 
-<div class="modal-overlay" id="modal-contact">
+<!-- MODALS -->
+<!-- Add Contact -->
+<div class="modal-bg" id="modal-contact">
   <div class="modal">
-    <div class="modal-title">Add Contact <button class="modal-close" onclick="closeModal('modal-contact')">×</button></div>
-    <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="mc-name" type="text" placeholder="Full name"></div>
-    <div class="form-group"><label class="form-label">Phone / WhatsApp *</label><input class="form-input" id="mc-phone" type="tel" placeholder="+1 268 555-1234"></div>
-    <div class="form-group"><label class="form-label">Book Interest</label><input class="form-input" id="mc-interest" type="text" placeholder="e.g. 250 Recipes, Uncle Arthur"></div>
-    <div class="form-group"><label class="form-label">Status</label><select class="form-input" id="mc-status"><option value="pending">Pending</option><option value="hot">Hot Lead</option><option value="closed">Closed</option><option value="donate">Donate</option></select></div>
-    <div class="form-group"><label class="form-label">Follow-up Date</label><input class="form-input" id="mc-followup" type="date"></div>
-    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="mc-notes" type="text" placeholder="Any details..."></div>
-    <button class="btn-primary" onclick="saveContact()">Save Contact</button>
+    <div class="modal-title">Add Contact<button class="modal-close" onclick="closeModal('modal-contact')">×</button></div>
+    <div class="fg"><label class="fl">Name *</label><input class="input-field" id="mc-name" type="text" placeholder="Full name"></div>
+    <div class="fg"><label class="fl">Phone / WhatsApp</label><input class="input-field" id="mc-phone" type="tel" placeholder="+1 268 555-1234"></div>
+    <div class="fg"><label class="fl">Book Interest</label><input class="input-field" id="mc-interest" type="text" placeholder="e.g. 250 Recipes, Uncle Arthur"></div>
+    <div class="fg"><label class="fl">Status</label>
+      <select class="input-field" id="mc-status">
+        <option value="pending">Pending</option><option value="hot">Hot Lead</option><option value="closed">Closed</option><option value="donate">Donate</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Follow-up Date</label><input class="input-field" id="mc-followup" type="date"></div>
+    <div class="fg"><label class="fl">Notes</label><input class="input-field" id="mc-notes" type="text" placeholder="Any details..."></div>
+    <button class="btn btn-gold" onclick="saveContact()">Save Contact</button>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal-donation">
+<!-- Edit Contact -->
+<div class="modal-bg" id="modal-edit-contact">
   <div class="modal">
-    <div class="modal-title">Add Donation <button class="modal-close" onclick="closeModal('modal-donation')">×</button></div>
-    <div class="form-group"><label class="form-label">Donor Name *</label><input class="form-input" id="md-name" type="text"></div>
-    <div class="form-group"><label class="form-label">Phone / WhatsApp</label><input class="form-input" id="md-phone" type="tel"></div>
-    <div class="form-group"><label class="form-label">Amount (EC$)</label><input class="form-input" id="md-amount" type="number" placeholder="0.00"></div>
-    <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="md-notes" type="text" placeholder="e.g. Cash collected, still pending..."></div>
-    <button class="btn-primary" onclick="saveDonation()">Save Donation</button>
+    <div class="modal-title">Edit Contact<button class="modal-close" onclick="closeModal('modal-edit-contact')">×</button></div>
+    <input type="hidden" id="ec-id">
+    <div class="fg"><label class="fl">Name</label><input class="input-field" id="ec-name" type="text"></div>
+    <div class="fg"><label class="fl">Phone / WhatsApp</label><input class="input-field" id="ec-phone" type="tel"></div>
+    <div class="fg"><label class="fl">Book Interest</label><input class="input-field" id="ec-interest" type="text"></div>
+    <div class="fg"><label class="fl">Status</label>
+      <select class="input-field" id="ec-status">
+        <option value="pending">Pending</option><option value="hot">Hot Lead</option><option value="closed">Closed</option><option value="donate">Donate</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Follow-up Date</label><input class="input-field" id="ec-followup" type="date"></div>
+    <div class="fg"><label class="fl">Notes</label><input class="input-field" id="ec-notes" type="text"></div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="updateContact()">Save Changes</button>
+      <button class="btn btn-ghost" style="color:var(--ember);border-color:#d4522a44" onclick="deleteContact()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Donation -->
+<div class="modal-bg" id="modal-don">
+  <div class="modal">
+    <div class="modal-title">Add Donation<button class="modal-close" onclick="closeModal('modal-don')">×</button></div>
+    <div class="fg"><label class="fl">Donor Name *</label><input class="input-field" id="md-name" type="text"></div>
+    <div class="fg"><label class="fl">Phone / WhatsApp</label><input class="input-field" id="md-phone" type="tel"></div>
+    <div class="fg"><label class="fl">Amount (EC$)</label><input class="input-field" id="md-amt" type="number" placeholder="0 if pending"></div>
+    <div class="fg"><label class="fl">Notes</label><input class="input-field" id="md-notes" type="text" placeholder="e.g. Pending collection, cash promised..."></div>
+    <button class="btn btn-gold" onclick="saveDonation()">Save Donation</button>
+  </div>
+</div>
+
+<!-- Add Inventory -->
+<div class="modal-bg" id="modal-inv-add">
+  <div class="modal">
+    <div class="modal-title">Add Book<button class="modal-close" onclick="closeModal('modal-inv-add')">×</button></div>
+    <div class="fg"><label class="fl">Book Title *</label><input class="input-field" id="ib-title" type="text" placeholder="e.g. 250 Recipes"></div>
+    <div class="fg"><label class="fl">Category</label>
+      <select class="input-field" id="ib-cat">
+        <option>Health</option><option>Cookbook</option><option>Children</option><option>Family</option><option>Christian Living</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-2">
+      <div class="fg"><label class="fl">Cost Price (EC$)</label><input class="input-field" id="ib-cost" type="number" placeholder="Your cost"></div>
+      <div class="fg"><label class="fl">Sell Price (EC$)</label><input class="input-field" id="ib-price" type="number" placeholder="Selling price"></div>
+    </div>
+    <div class="fg"><label class="fl">Opening Stock (qty)</label><input class="input-field" id="ib-stock" type="number" placeholder="How many you have"></div>
+    <button class="btn btn-gold" onclick="saveBook()">Add Book</button>
+  </div>
+</div>
+
+<!-- Edit Inventory -->
+<div class="modal-bg" id="modal-inv-edit">
+  <div class="modal">
+    <div class="modal-title">Edit Book<button class="modal-close" onclick="closeModal('modal-inv-edit')">×</button></div>
+    <input type="hidden" id="ei-id">
+    <div class="fg"><label class="fl">Book Title</label><input class="input-field" id="ei-title" type="text"></div>
+    <div class="form-2">
+      <div class="fg"><label class="fl">Cost Price (EC$)</label><input class="input-field" id="ei-cost" type="number"></div>
+      <div class="fg"><label class="fl">Sell Price (EC$)</label><input class="input-field" id="ei-price" type="number"></div>
+    </div>
+    <div class="form-2">
+      <div class="fg"><label class="fl">Opening Stock</label><input class="input-field" id="ei-stock" type="number"></div>
+      <div class="fg"><label class="fl">Qty Sold</label><input class="input-field" id="ei-sold" type="number"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-gold" onclick="updateBook()">Save Changes</button>
+      <button class="btn btn-ghost" style="color:var(--ember);border-color:#d4522a44" onclick="deleteBook()">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Field (inline) -->
+<div class="modal-bg" id="modal-edit-field">
+  <div class="modal">
+    <div class="modal-title" id="ef-title">Edit<button class="modal-close" onclick="closeModal('modal-edit-field')">×</button></div>
+    <input type="hidden" id="ef-key">
+    <div class="fg"><input class="input-field" id="ef-val" type="number" style="font-size:24px;text-align:center;font-family:'Fraunces',serif;"></div>
+    <button class="btn btn-gold" onclick="saveField()">Save</button>
+  </div>
+</div>
+
+<!-- Share -->
+<div class="modal-bg" id="modal-share">
+  <div class="modal">
+    <div class="modal-title">Share with Friend<button class="modal-close" onclick="closeModal('modal-share')">×</button></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;">Copy the code below and send it to your friend. They paste it in their app to get a copy of your data — or they can start fresh.</p>
+    <div class="share-box">
+      <div class="share-label">Your data code:</div>
+      <div class="share-code" id="share-code-display"></div>
+      <button class="btn btn-gold" style="margin-bottom:10px;" onclick="copyShareCode()">Copy Code</button>
+    </div>
+    <div style="margin-top:16px;">
+      <div class="fl" style="margin-bottom:8px;">Import a friend's code:</div>
+      <textarea class="input-field" id="import-code" placeholder="Paste code here..." style="min-height:80px;font-size:12px;"></textarea>
+      <button class="btn btn-ghost" style="margin-top:8px;" onclick="importCode()">Import Data</button>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const TARGET=30000;
-const END_DATE=new Date('2025-07-17');
-let currentPage='dashboard';
-
-let state=JSON.parse(localStorage.getItem('le_state')||'null')||{
-  sales:[
-    {id:1,date:'2025-05-24',name:'Concert Sales',phone:'',books:'Various books',amount:420,payment:'Cash',notes:'Sat & Sun concert total'},
-    {id:2,date:'2025-05-27',name:'Customer',phone:'',books:'Bedtime Stories Small',amount:120,payment:'Cash',notes:''},
-    {id:3,date:'2025-05-27',name:'Customer',phone:'',books:'Compleat Tween + Bible Brave Girls',amount:135,payment:'Cash',notes:''},
-    {id:4,date:'2025-05-27',name:'Customer',phone:'',books:'Teas from Medicinal Plant',amount:75,payment:'Cash',notes:''},
-    {id:5,date:'2025-05-27',name:'Customer',phone:'',books:'Compleat Tween',amount:50,payment:'Cash',notes:''},
-    {id:6,date:'2025-05-27',name:'Customer',phone:'',books:'250 Recipes',amount:100,payment:'Cash',notes:''},
-    {id:7,date:'2025-05-27',name:'Customer',phone:'',books:'Teas + Bible Brave Boys + Bible Brave Girls',amount:195,payment:'Cash',notes:''},
-    {id:8,date:'2025-05-27',name:'Customer',phone:'',books:'Flavors of the World',amount:160,payment:'Cash',notes:''},
-    {id:9,date:'2025-05-27',name:'Customer',phone:'',books:'Cooking with Kids',amount:160,payment:'Cash',notes:''},
-    {id:10,date:'2025-05-27',name:'Customer',phone:'',books:'Teas from Medicinal Plant',amount:75,payment:'Cash',notes:''},
-    {id:11,date:'2025-05-27',name:'Customer',phone:'',books:'Flavors of the World',amount:150,payment:'Cash',notes:''},
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+const END = new Date('2026-07-17T00:00:00');
+const DEFAULT_STATE = {
+  target: 30000, commRate: 0.5, scholRate: 0.6,
+  sales: [
+    {id:1,date:'2026-05-24',name:'Concert Sales',phone:'',books:'Various books',amount:420,payment:'Cash',notes:'Sat & Sun concert total'},
+    {id:2,date:'2026-05-27',name:'Customer',phone:'',books:'Bedtime Stories Small',amount:120,payment:'Cash',notes:''},
+    {id:3,date:'2026-05-27',name:'Customer',phone:'',books:'Compleat Tween + Bible Brave Girls',amount:135,payment:'Cash',notes:''},
+    {id:4,date:'2026-05-27',name:'Customer',phone:'',books:'Teas from Medicinal Plant',amount:75,payment:'Cash',notes:''},
+    {id:5,date:'2026-05-27',name:'Customer',phone:'',books:'Compleat Tween',amount:50,payment:'Cash',notes:''},
+    {id:6,date:'2026-05-27',name:'Customer',phone:'',books:'250 Recipes',amount:100,payment:'Cash',notes:''},
+    {id:7,date:'2026-05-27',name:'Customer',phone:'',books:'Teas + Bible Brave Boys + Bible Brave Girls',amount:195,payment:'Cash',notes:''},
+    {id:8,date:'2026-05-27',name:'Customer',phone:'',books:'Flavors of the World',amount:160,payment:'Cash',notes:''},
+    {id:9,date:'2026-05-27',name:'Customer',phone:'',books:'Cooking with Kids',amount:160,payment:'Cash',notes:''},
+    {id:10,date:'2026-05-27',name:'Customer',phone:'',books:'Teas from Medicinal Plant',amount:75,payment:'Cash',notes:''},
+    {id:11,date:'2026-05-27',name:'Customer',phone:'',books:'Flavors of the World',amount:150,payment:'Cash',notes:''},
   ],
-  contacts:[
+  contacts: [
     {id:1,name:'Faith Jeffrey',phone:'+1 (268) 717-7065',interest:'250 Recipes',status:'pending',followup:'',notes:''},
     {id:2,name:'Juray Roberts',phone:'+1 (268) 722-9958',interest:'—',status:'donate',followup:'',notes:'Willing to donate — collect cash'},
     {id:3,name:'Alexander Trotman',phone:'+1 (268) 770-8875',interest:'Uncle Arthur',status:'pending',followup:'',notes:''},
@@ -238,148 +489,367 @@ let state=JSON.parse(localStorage.getItem('le_state')||'null')||{
     {id:6,name:'Agadde Joseph',phone:'+1 (268) 780-0135',interest:'2x Couples Teas, Bible for Boy & Girl',status:'hot',followup:'',notes:'Ready to buy'},
     {id:7,name:'Sabina Thomas',phone:'+1 (268) 732-6380',interest:'Juices/Shakes, Flavors of the World, Bible Speaks',status:'hot',followup:'',notes:'High value — 3 books'},
   ],
-  donations:[
+  donations: [
     {id:1,name:'Juray Roberts',phone:'+1 (268) 722-9958',amount:0,notes:'Willing to donate — awaiting cash collection',date:''},
   ],
-  nextId:20
+  inventory: [
+    {id:1,title:'Juices Smoothie & Drinks',cat:'Health',cost:41,price:82,stock:3,sold:1},
+    {id:2,title:'Teas from Medicinal Plant',cat:'Health',cost:37.5,price:75,stock:7,sold:3},
+    {id:3,title:'Heart At Peace',cat:'Health',cost:50,price:100,stock:4,sold:0},
+    {id:4,title:'Cooking with Kids',cat:'Cookbook',cost:78,price:156,stock:2,sold:1},
+    {id:5,title:'250 Recipes',cat:'Cookbook',cost:51,price:102,stock:3,sold:1},
+    {id:6,title:'Bedtime Stories Small',cat:'Children',cost:72.5,price:145,stock:3,sold:1},
+    {id:7,title:'The Compleat Tween',cat:'Family',cost:37.5,price:75,stock:2,sold:2},
+    {id:8,title:'Flavors of the World',cat:'Cookbook',cost:80,price:160,stock:0,sold:2},
+    {id:9,title:'Healing Wonders of Water',cat:'Health',cost:15,price:30,stock:2,sold:0},
+    {id:10,title:'Cracking the Stress Problem',cat:'Health',cost:58,price:116,stock:2,sold:0},
+    {id:11,title:'Uncle Arthur Large',cat:'Children',cost:175,price:350,stock:2,sold:0},
+    {id:12,title:'Stress and Anxiety',cat:'Health',cost:25,price:50,stock:4,sold:0},
+    {id:13,title:'Positive Mind',cat:'Health',cost:75,price:75,stock:4,sold:0},
+    {id:14,title:'Bible Stories for Brave Boys',cat:'Children',cost:38.25,price:45,stock:4,sold:0},
+    {id:15,title:'Bible Stories for Brave Girls',cat:'Children',cost:38.25,price:45,stock:4,sold:0},
+  ],
+  nextId: 100
 };
 
-function save(){localStorage.setItem('le_state',JSON.stringify(state));}
+let S = JSON.parse(localStorage.getItem('le_v2') || 'null') || DEFAULT_STATE;
+function save() { try { localStorage.setItem('le_v2', JSON.stringify(S)); } catch(e){} }
 
-function showPage(page,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  btn.classList.add('active');
-  currentPage=page;
-  const fab=document.getElementById('fab-add');
-  fab.style.display=(page==='contacts'||page==='donations')?'flex':'none';
-  if(page==='dashboard')renderDashboard();
-  if(page==='contacts')renderContacts('');
-  if(page==='donations')renderDonations();
+// ─── COUNTDOWN ───
+function updateCountdown() {
+  const diff = Math.max(0, Math.ceil((END - new Date()) / 86400000));
+  document.getElementById('cd-num').textContent = diff;
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+
+// ─── TOTALS ───
+function getTotal() { return S.sales.reduce((s,x) => s + (x.amount||0), 0); }
+function getToday() {
+  const t = new Date().toISOString().slice(0,10);
+  return S.sales.filter(x => x.date === t).reduce((s,x) => s + (x.amount||0), 0);
+}
+function fmt(n) { return 'EC$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:0,maximumFractionDigits:0}); }
+
+// ─── DASHBOARD ───
+function renderDash() {
+  const total = getTotal();
+  const pct = Math.min(100, total / S.target * 100);
+  const comm = total * S.commRate;
+  const schol = comm * S.scholRate;
+  const living = comm * (1 - S.scholRate);
+
+  document.getElementById('h-total').textContent = fmt(total);
+  document.getElementById('h-target').textContent = fmt(S.target);
+  document.getElementById('pbar').style.width = pct.toFixed(1) + '%';
+  document.getElementById('pbar-pct').textContent = pct.toFixed(1) + '%';
+  document.getElementById('pbar-remain').textContent = fmt(Math.max(0, S.target - total)) + ' remaining';
+  document.getElementById('m-comm').textContent = fmt(comm);
+  document.getElementById('m-today').textContent = fmt(getToday());
+  document.getElementById('m-schol').textContent = fmt(schol);
+  document.getElementById('m-living').textContent = fmt(living);
+
+  const recent = [...S.sales].reverse().slice(0,6);
+  document.getElementById('recent-sales').innerHTML = recent.length
+    ? recent.map(s => `<div class="sale-item">
+        <div class="si-left"><div class="si-name">${s.name}</div><div class="si-book">${s.books}</div></div>
+        <div class="si-right"><div class="si-amt">${fmt(s.amount)}</div><div class="si-date">${s.date||''}</div></div>
+      </div>`).join('')
+    : '<div class="empty">No sales yet</div>';
 }
 
-function renderDashboard(){
-  const total=state.sales.reduce((s,x)=>s+x.amount,0);
-  const today=new Date().toISOString().slice(0,10);
-  const todayTotal=state.sales.filter(s=>s.date===today).reduce((s,x)=>s+x.amount,0);
-  const pct=Math.min(100,(total/TARGET*100)).toFixed(1);
-  const daysLeft=Math.max(0,Math.ceil((END_DATE-new Date())/86400000));
-  document.getElementById('dash-total').textContent='EC$'+total.toLocaleString();
-  document.getElementById('dash-bar').style.width=pct+'%';
-  document.getElementById('dash-pct').textContent=pct+'% complete';
-  document.getElementById('dash-commission').textContent='EC$'+(total*0.5).toLocaleString();
-  document.getElementById('dash-today').textContent='EC$'+todayTotal.toLocaleString();
-  document.getElementById('dash-remaining').textContent='EC$'+Math.max(0,TARGET-total).toLocaleString();
-  document.getElementById('dash-days').textContent=daysLeft;
-  document.getElementById('days-left-top').textContent=daysLeft+' days left';
-  const recent=[...state.sales].reverse().slice(0,5);
-  document.getElementById('recent-list').innerHTML=recent.length?recent.map(s=>`<div class="recent-item"><div><div class="ri-name">${s.name}</div><div class="ri-book">${s.books}</div></div><div class="ri-amount">EC$${s.amount}</div></div>`).join(''):'<div class="empty-state">No sales yet — go get em!</div>';
+// ─── INLINE EDIT FIELD ───
+function editField(key, label, current) {
+  document.getElementById('ef-title').childNodes[0].textContent = label;
+  document.getElementById('ef-key').value = key;
+  document.getElementById('ef-val').value = current;
+  openModal('modal-edit-field');
 }
-
-function switchTab(tab){
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(i===0&&tab==='ai')||(i===1&&tab==='form')));
-  document.getElementById('tab-ai').classList.toggle('active',tab==='ai');
-  document.getElementById('tab-form').classList.toggle('active',tab==='form');
-}
-
-let parsedSale=null;
-async function parseAiInput(){
-  const text=document.getElementById('ai-input').value.trim();
-  if(!text){showToast('Describe the sale first');return;}
-  const btn=document.getElementById('ai-parse-btn');
-  btn.textContent='Parsing...';btn.disabled=true;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:`Extract sale info from this text. Return ONLY valid JSON, no markdown, no extra text:\n{"name":"customer name or empty string","phone":"phone number with country code or empty string","books":"book titles comma separated","amount":number,"payment":"Cash","notes":""}\n\nText: ${text}`}]})});
-    const data=await res.json();
-    const raw=data.content[0].text.replace(/```json|```/g,'').trim();
-    parsedSale=JSON.parse(raw);
-    parsedSale.date=new Date().toISOString().slice(0,10);
-    document.getElementById('ai-result-body').innerHTML=Object.entries({'Customer':parsedSale.name||'(not mentioned)','Phone':parsedSale.phone||'(not mentioned)','Books':parsedSale.books,'Amount':'EC$'+parsedSale.amount,'Payment':parsedSale.payment}).map(([k,v])=>`<div class="ai-result-row"><span style="color:var(--text2)">${k}</span><span>${v}</span></div>`).join('');
-    document.getElementById('ai-result').classList.add('show');
-  }catch(e){showToast('Could not parse — try the form');}
-  btn.textContent='Parse & Confirm';btn.disabled=false;
-}
-
-function confirmAiSale(){
-  if(!parsedSale)return;
-  const amt=parsedSale.amount;
-  parsedSale.id=state.nextId++;
-  state.sales.push({...parsedSale});
-  if(parsedSale.name&&parsedSale.phone){
-    if(!state.contacts.find(c=>c.phone===parsedSale.phone))
-      state.contacts.push({id:state.nextId++,name:parsedSale.name,phone:parsedSale.phone,interest:parsedSale.books,status:'closed',followup:'',notes:'Auto-added from sale'});
+function saveField() {
+  const key = document.getElementById('ef-key').value;
+  const val = parseFloat(document.getElementById('ef-val').value);
+  if (key === 'target') S.target = val;
+  else if (key === 'commission_rate') S.commRate = val / 100;
+  else if (key === 'schol_rate') S.scholRate = val / 100;
+  else if (key === 'total_sales') {
+    // Add adjustment entry
+    const existing = S.sales.find(s => s.notes === '__manual_adjust__');
+    if (existing) existing.amount = val - (getTotal() - existing.amount);
+    else S.sales.push({id:S.nextId++,date:new Date().toISOString().slice(0,10),name:'Manual Adjustment',phone:'',books:'—',amount:val - getTotal(),payment:'—',notes:'__manual_adjust__'});
   }
+  save(); closeModal('modal-edit-field'); renderDash(); toast('Updated!');
+}
+
+// ─── NAV ───
+let curPage = 'dash';
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.getElementById('pg-'+p).classList.add('active');
+  curPage = p;
+  const fab = document.getElementById('fab');
+  fab.style.display = ['contacts','don','inv'].includes(p) ? 'flex' : 'none';
+  if (p==='dash') renderDash();
+  if (p==='contacts') renderContacts('');
+  if (p==='inv') renderInv();
+  if (p==='don') renderDon();
+}
+function setNav(p) {
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('active'));
+  document.getElementById('nav-'+p).classList.add('active');
+}
+function fabAction() {
+  if (curPage==='contacts') openModal('modal-contact');
+  else if (curPage==='don') openModal('modal-don');
+  else if (curPage==='inv') openModal('modal-inv-add');
+}
+
+// ─── LOG SALE TABS ───
+function switchTab(t) {
+  ['ai','form'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('active', x===t);
+    document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&t==='ai')||(i===1&&t==='form')));
+  });
+  // set today's date in form
+  document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+}
+
+// ─── AI PARSE ───
+let parsedData = null;
+async function parseAi() {
+  const text = document.getElementById('ai-in').value.trim();
+  if (!text) { toast('Type something first'); return; }
+  const btn = document.getElementById('ai-btn');
+  btn.textContent = 'Parsing...'; btn.disabled = true;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 300,
+        messages: [{role:'user',content:`Extract sale info. Return ONLY valid JSON:\n{"name":"customer name or empty","phone":"phone with country code or empty","books":"book titles","amount":number,"payment":"Cash","notes":""}\n\nText: ${text}`}]
+      })
+    });
+    const d = await r.json();
+    parsedData = JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());
+    parsedData.date = new Date().toISOString().slice(0,10);
+    document.getElementById('pb-body').innerHTML = Object.entries({
+      'Customer': parsedData.name||'(not stated)',
+      'Phone': parsedData.phone||'(not stated)',
+      'Books': parsedData.books,
+      'Amount': fmt(parsedData.amount),
+      'Payment': parsedData.payment
+    }).map(([k,v])=>`<div class="pb-row"><span class="pb-key">${k}</span><span class="pb-val">${v}</span></div>`).join('');
+    document.getElementById('parsed-box').classList.add('show');
+  } catch(e) { toast('Could not parse — try the form'); }
+  btn.textContent = 'Parse & Confirm'; btn.disabled = false;
+}
+function confirmAi() {
+  if (!parsedData) return;
+  const amt = parsedData.amount;
+  parsedData.id = S.nextId++;
+  S.sales.push({...parsedData});
+  autoAddContact(parsedData);
+  save(); renderDash();
+  document.getElementById('ai-in').value = '';
+  document.getElementById('parsed-box').classList.remove('show');
+  parsedData = null;
+  toast('Sale saved! ' + fmt(amt));
+}
+function cancelAi() { document.getElementById('parsed-box').classList.remove('show'); parsedData = null; }
+
+function saveForm() {
+  const name = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const books = document.getElementById('f-books').value.trim();
+  const amount = parseFloat(document.getElementById('f-amt').value)||0;
+  if (!books||!amount) { toast('Books and amount required'); return; }
+  const s = {id:S.nextId++,date:document.getElementById('f-date').value||new Date().toISOString().slice(0,10),name:name||'Customer',phone,books,amount,payment:document.getElementById('f-pay').value,notes:document.getElementById('f-notes').value};
+  S.sales.push(s);
+  autoAddContact(s);
   save();
-  document.getElementById('ai-input').value='';
-  document.getElementById('ai-result').classList.remove('show');
-  parsedSale=null;
-  showToast('Sale saved! EC$'+amt);
-  renderDashboard();
+  ['f-name','f-phone','f-books','f-amt','f-notes'].forEach(id=>document.getElementById(id).value='');
+  toast('Sale saved! '+fmt(amount));
+  renderDash();
+}
+function autoAddContact(s) {
+  if (s.name && s.phone && !S.contacts.find(c=>c.phone===s.phone))
+    S.contacts.push({id:S.nextId++,name:s.name,phone:s.phone,interest:s.books,status:'closed',followup:'',notes:'Auto-added from sale'});
 }
 
-function cancelAi(){document.getElementById('ai-result').classList.remove('show');parsedSale=null;}
-
-function saveFormSale(){
-  const name=document.getElementById('f-name').value.trim();
-  const phone=document.getElementById('f-phone').value.trim();
-  const books=document.getElementById('f-books').value.trim();
-  const amount=parseFloat(document.getElementById('f-amount').value)||0;
-  if(!books||!amount){showToast('Books and amount are required');return;}
-  const sale={id:state.nextId++,date:new Date().toISOString().slice(0,10),name:name||'Customer',phone,books,amount,payment:document.getElementById('f-payment').value,notes:document.getElementById('f-notes').value};
-  state.sales.push(sale);
-  if(name&&phone&&!state.contacts.find(c=>c.phone===phone))
-    state.contacts.push({id:state.nextId++,name,phone,interest:books,status:'closed',followup:'',notes:'Auto-added from sale'});
-  save();
-  ['f-name','f-phone','f-books','f-amount','f-notes'].forEach(id=>document.getElementById(id).value='');
-  showToast('Sale saved! EC$'+amount);
-  renderDashboard();
+// ─── CONTACTS ───
+const sBadge = {hot:'<span class="badge b-hot">Hot Lead</span>',pending:'<span class="badge b-pending">Pending</span>',closed:'<span class="badge b-closed">Closed</span>',donate:'<span class="badge b-donate">Donate</span>'};
+function renderContacts(q) {
+  q = (q||'').toLowerCase();
+  const list = S.contacts.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.interest||'').toLowerCase().includes(q));
+  document.getElementById('contacts-count').textContent = list.length + ' contacts';
+  document.getElementById('contacts-list').innerHTML = list.length ? list.map(c=>{
+    const wa = 'https://wa.me/'+c.phone.replace(/\D/g,'');
+    const calUrl = c.followup ? `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Follow up: '+c.name)}&dates=${c.followup.replace(/-/g,'')}/${c.followup.replace(/-/g,'')}&details=${encodeURIComponent(c.phone+' | '+c.interest+' | '+c.notes)}` : '';
+    return `<div class="contact-card">
+      <div class="cc-top"><div class="cc-name">${c.name}</div>${sBadge[c.status]||''}</div>
+      <div class="cc-phone">${c.phone||'No phone'}</div>
+      ${c.interest?`<div class="cc-interest">📚 ${c.interest}</div>`:''}
+      ${c.notes?`<div class="cc-notes">${c.notes}</div>`:''}
+      <div class="cc-actions">
+        <a class="ca wa" href="${wa}" target="_blank">💬 WhatsApp</a>
+        <a class="ca" href="tel:${c.phone}">📞 Call</a>
+        ${calUrl?`<a class="ca cal" href="${calUrl}" target="_blank">📅 Calendar</a>`:''}
+        <span class="ca edit-btn" onclick="openEditContact(${c.id})">✏️ Edit</span>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty">No contacts found</div>';
 }
-
-function renderContacts(search){
-  const q=(search||'').toLowerCase();
-  const list=state.contacts.filter(c=>!q||c.name.toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.interest||'').toLowerCase().includes(q));
-  const sLabel={hot:'Hot Lead',pending:'Pending',closed:'Closed',donate:'Donate'};
-  const sCls={hot:'status-hot',pending:'status-pending',closed:'status-closed',donate:'status-donate'};
-  document.getElementById('contacts-list').innerHTML=list.length?list.map(c=>{
-    const wa='https://wa.me/'+c.phone.replace(/\D/g,'');
-    const calUrl=c.followup?`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Follow up: '+c.name)}&dates=${c.followup.replace(/-/g,'')}/${c.followup.replace(/-/g,'')}&details=${encodeURIComponent(c.phone+' | '+c.interest+' | '+c.notes)}`:'';
-    return`<div class="contact-card"><div class="contact-header"><div class="contact-name">${c.name}</div><span class="status-badge ${sCls[c.status]||'status-pending'}">${sLabel[c.status]||c.status}</span></div><div class="contact-phone">${c.phone}</div>${c.interest?`<div class="contact-interest">📚 ${c.interest}</div>`:''} ${c.notes?`<div class="contact-interest">📝 ${c.notes}</div>`:''}<div class="contact-actions"><a class="action-btn" href="${wa}" target="_blank">💬 WhatsApp</a><a class="action-btn" href="tel:${c.phone}">📞 Call</a>${calUrl?`<a class="action-btn cal" href="${calUrl}" target="_blank">📅 Calendar</a>`:''}</div></div>`;
-  }).join(''):'<div class="empty-state">No contacts found</div>';
-}
-
-function openAddModal(){
-  if(currentPage==='donations'){document.getElementById('modal-donation').classList.add('show');return;}
-  document.getElementById('modal-contact').classList.add('show');
-}
-
-function saveContact(){
-  const name=document.getElementById('mc-name').value.trim();
-  if(!name){showToast('Name is required');return;}
-  state.contacts.push({id:state.nextId++,name,phone:document.getElementById('mc-phone').value,interest:document.getElementById('mc-interest').value,status:document.getElementById('mc-status').value,followup:document.getElementById('mc-followup').value,notes:document.getElementById('mc-notes').value});
-  save();closeModal('modal-contact');renderContacts('');showToast('Contact saved!');
+function saveContact() {
+  const name = document.getElementById('mc-name').value.trim();
+  if (!name) { toast('Name required'); return; }
+  S.contacts.push({id:S.nextId++,name,phone:document.getElementById('mc-phone').value,interest:document.getElementById('mc-interest').value,status:document.getElementById('mc-status').value,followup:document.getElementById('mc-followup').value,notes:document.getElementById('mc-notes').value});
+  save(); closeModal('modal-contact'); renderContacts(''); toast('Contact saved!');
   ['mc-name','mc-phone','mc-interest','mc-followup','mc-notes'].forEach(id=>document.getElementById(id).value='');
 }
-
-function renderDonations(){
-  const total=state.donations.reduce((s,d)=>s+(d.amount||0),0);
-  document.getElementById('don-total').textContent='EC$'+total.toLocaleString();
-  document.getElementById('don-count').textContent=state.donations.length;
-  document.getElementById('donations-list').innerHTML=state.donations.length?state.donations.map(d=>`<div class="donation-card"><div><div class="donation-name">${d.name}</div>${d.phone?`<div class="donation-note">${d.phone}</div>`:''} ${d.notes?`<div class="donation-note">${d.notes}</div>`:''}</div><div style="text-align:right"><div class="donation-amount">${d.amount?'EC$'+d.amount:''}</div><div style="font-size:12px;color:var(--text2)">${!d.amount?'Pending':'Received'}</div></div></div>`).join(''):'<div class="empty-state">No donations yet</div>';
+function openEditContact(id) {
+  const c = S.contacts.find(x=>x.id===id); if(!c) return;
+  document.getElementById('ec-id').value=id;
+  document.getElementById('ec-name').value=c.name;
+  document.getElementById('ec-phone').value=c.phone||'';
+  document.getElementById('ec-interest').value=c.interest||'';
+  document.getElementById('ec-status').value=c.status||'pending';
+  document.getElementById('ec-followup').value=c.followup||'';
+  document.getElementById('ec-notes').value=c.notes||'';
+  openModal('modal-edit-contact');
+}
+function updateContact() {
+  const id=parseInt(document.getElementById('ec-id').value);
+  const c=S.contacts.find(x=>x.id===id); if(!c) return;
+  c.name=document.getElementById('ec-name').value;c.phone=document.getElementById('ec-phone').value;
+  c.interest=document.getElementById('ec-interest').value;c.status=document.getElementById('ec-status').value;
+  c.followup=document.getElementById('ec-followup').value;c.notes=document.getElementById('ec-notes').value;
+  save();closeModal('modal-edit-contact');renderContacts(document.getElementById('c-search').value);toast('Contact updated!');
+}
+function deleteContact() {
+  const id=parseInt(document.getElementById('ec-id').value);
+  S.contacts=S.contacts.filter(x=>x.id!==id);
+  save();closeModal('modal-edit-contact');renderContacts('');toast('Contact deleted');
 }
 
-function saveDonation(){
+// ─── INVENTORY ───
+function renderInv() {
+  const totalBooks = S.inventory.reduce((s,b)=>s+(b.stock||0),0);
+  const totalSold = S.inventory.reduce((s,b)=>s+(b.sold||0),0);
+  const totalLeft = S.inventory.reduce((s,b)=>s+Math.max(0,(b.stock||0)-(b.sold||0)),0);
+  document.getElementById('inv-summary').innerHTML = `
+    <div class="inv-stat"><div class="is-val">${totalBooks}</div><div class="is-lbl">In Stock</div></div>
+    <div class="inv-stat"><div class="is-val">${totalSold}</div><div class="is-lbl">Sold</div></div>
+    <div class="inv-stat"><div class="is-val">${totalLeft}</div><div class="is-lbl">Remaining</div></div>`;
+  document.getElementById('inv-list').innerHTML = S.inventory.length ? S.inventory.map(b=>{
+    const left = Math.max(0,(b.stock||0)-(b.sold||0));
+    const leftCls = left===0?'ember':left<=2?'low':'ok';
+    return `<div class="inv-row" onclick="openEditBook(${b.id})">
+      <div><div class="inv-title">${b.title}</div><div class="inv-price">EC$${b.price} sell · EC$${b.cost} cost</div></div>
+      <div class="inv-cell">${b.price}</div>
+      <div class="inv-cell">${b.sold||0}</div>
+      <div class="inv-cell ${leftCls}">${left}</div>
+    </div>`;
+  }).join('') : '<div class="empty">No books added yet</div>';
+}
+function saveBook() {
+  const title=document.getElementById('ib-title').value.trim();
+  if(!title){toast('Title required');return;}
+  S.inventory.push({id:S.nextId++,title,cat:document.getElementById('ib-cat').value,cost:parseFloat(document.getElementById('ib-cost').value)||0,price:parseFloat(document.getElementById('ib-price').value)||0,stock:parseInt(document.getElementById('ib-stock').value)||0,sold:0});
+  save();closeModal('modal-inv-add');renderInv();toast('Book added!');
+  ['ib-title','ib-cost','ib-price','ib-stock'].forEach(id=>document.getElementById(id).value='');
+}
+function openEditBook(id) {
+  const b=S.inventory.find(x=>x.id===id);if(!b)return;
+  document.getElementById('ei-id').value=id;
+  document.getElementById('ei-title').value=b.title;
+  document.getElementById('ei-cost').value=b.cost;
+  document.getElementById('ei-price').value=b.price;
+  document.getElementById('ei-stock').value=b.stock||0;
+  document.getElementById('ei-sold').value=b.sold||0;
+  openModal('modal-inv-edit');
+}
+function updateBook() {
+  const id=parseInt(document.getElementById('ei-id').value);
+  const b=S.inventory.find(x=>x.id===id);if(!b)return;
+  b.title=document.getElementById('ei-title').value;
+  b.cost=parseFloat(document.getElementById('ei-cost').value)||0;
+  b.price=parseFloat(document.getElementById('ei-price').value)||0;
+  b.stock=parseInt(document.getElementById('ei-stock').value)||0;
+  b.sold=parseInt(document.getElementById('ei-sold').value)||0;
+  save();closeModal('modal-inv-edit');renderInv();toast('Book updated!');
+}
+function deleteBook() {
+  const id=parseInt(document.getElementById('ei-id').value);
+  S.inventory=S.inventory.filter(x=>x.id!==id);
+  save();closeModal('modal-inv-edit');renderInv();toast('Book removed');
+}
+
+// ─── DONATIONS ───
+function renderDon() {
+  const total=S.donations.reduce((s,d)=>s+(d.amount||0),0);
+  document.getElementById('don-total').textContent=fmt(total);
+  document.getElementById('don-count').textContent=S.donations.length;
+  document.getElementById('don-list').innerHTML=S.donations.length?S.donations.map(d=>`
+    <div class="don-card">
+      <div><div class="don-name">${d.name}</div>${d.phone?`<div class="don-note">${d.phone}</div>`:''} ${d.notes?`<div class="don-note">${d.notes}</div>`:''}</div>
+      <div style="text-align:right"><div class="don-amt">${d.amount?fmt(d.amount):''}</div><div class="don-status">${!d.amount?'Pending':'Received'}</div></div>
+    </div>`).join(''):'<div class="empty">No donations yet</div>';
+}
+function saveDonation() {
   const name=document.getElementById('md-name').value.trim();
-  if(!name){showToast('Name is required');return;}
-  state.donations.push({id:state.nextId++,name,phone:document.getElementById('md-phone').value,amount:parseFloat(document.getElementById('md-amount').value)||0,notes:document.getElementById('md-notes').value,date:new Date().toISOString().slice(0,10)});
-  save();closeModal('modal-donation');renderDonations();showToast('Donation saved!');
-  ['md-name','md-phone','md-amount','md-notes'].forEach(id=>document.getElementById(id).value='');
+  if(!name){toast('Name required');return;}
+  S.donations.push({id:S.nextId++,name,phone:document.getElementById('md-phone').value,amount:parseFloat(document.getElementById('md-amt').value)||0,notes:document.getElementById('md-notes').value,date:new Date().toISOString().slice(0,10)});
+  save();closeModal('modal-don');renderDon();toast('Donation saved!');
+  ['md-name','md-phone','md-amt','md-notes'].forEach(id=>document.getElementById(id).value='');
 }
 
-function closeModal(id){document.getElementById(id).classList.remove('show');}
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+// ─── SHARE ───
+function openShare() {
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(S)))).substring(0,500)+'...';
+  const fullCode = btoa(unescape(encodeURIComponent(JSON.stringify(S))));
+  document.getElementById('share-code-display').textContent = fullCode.substring(0,120)+'...';
+  document.getElementById('share-code-display').setAttribute('data-full', fullCode);
+  openModal('modal-share');
+}
+function copyShareCode() {
+  const full = document.getElementById('share-code-display').getAttribute('data-full');
+  navigator.clipboard.writeText(full).then(()=>toast('Code copied!')).catch(()=>toast('Select and copy manually'));
+}
+function importCode() {
+  const code = document.getElementById('import-code').value.trim();
+  try {
+    const imported = JSON.parse(decodeURIComponent(escape(atob(code))));
+    if (!imported.sales) throw new Error();
+    S = imported; save(); closeModal('modal-share');
+    renderDash(); toast('Data imported!');
+  } catch(e) { toast('Invalid code — check and try again'); }
+}
 
-renderDashboard();
+// ─── MODAL ───
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('show'); }));
+
+// ─── TOAST ───
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// ─── TOPBAR share button ───
+document.querySelector('.tb-left').addEventListener('dblclick', openShare);
+
+// ─── INIT ───
+document.getElementById('f-date').value = new Date().toISOString().slice(0,10);
+renderDash();
+
+// Add share hint to topbar
+const shareBtn = document.createElement('button');
+shareBtn.textContent = '⇅ Share';
+shareBtn.style.cssText = 'background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);font-size:11px;padding:5px 10px;cursor:pointer;margin-left:8px;';
+shareBtn.onclick = openShare;
+document.querySelector('.tb-left').after(shareBtn);
 </script>
 </body>
 </html>
